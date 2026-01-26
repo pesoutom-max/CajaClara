@@ -32,10 +32,13 @@ export function DashboardClient() {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
+  const { today, tomorrow } = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return { today, tomorrow };
+  }, []);
 
   const salesQuery = useMemoFirebase(() => {
     if (!user) return null;

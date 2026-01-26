@@ -1,12 +1,13 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, Timestamp } from 'firebase/firestore';
+import { useRouter } from 'next/navigation';
 
 interface DailySummary {
   date: string;
@@ -17,6 +18,13 @@ interface DailySummary {
 export default function PreviousDaysPage() {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, isUserLoading, router]);
 
   const salesQuery = useMemoFirebase(() => {
     if (!user) return null;
@@ -93,7 +101,7 @@ export default function PreviousDaysPage() {
     return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(value);
   };
   
-  if (isUserLoading || salesLoading || expensesLoading) {
+  if (isUserLoading || salesLoading || expensesLoading || !user) {
       return (
         <div className="flex justify-center items-center h-screen">
           <Loader2 className="h-8 w-8 animate-spin" />

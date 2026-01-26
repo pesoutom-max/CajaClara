@@ -38,20 +38,7 @@ export function Header() {
               Cerrar sesión
             </Button>
           </>
-        ) : (
-          <>
-             <Button variant="ghost" asChild>
-              <Link href="/login">
-                Iniciar sesión
-              </Link>
-            </Button>
-             <Button asChild>
-               <Link href="/signup">
-                Registrarse
-              </Link>
-             </Button>
-          </>
-        )}
+        ) : null}
       </nav>
     </header>
   );

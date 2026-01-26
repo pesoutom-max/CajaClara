@@ -16,7 +16,7 @@ import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebas
 import { collection, query, where, Timestamp, serverTimestamp } from 'firebase/firestore';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { useToast } from "@/hooks/use-toast";
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 const saleSchema = z.object({
   amount: z.coerce.number().positive("El monto debe ser un número positivo."),
@@ -36,13 +36,6 @@ export function DashboardClient() {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!isUserLoading && !user) {
-      router.push('/login');
-    }
-  }, [user, isUserLoading, router]);
 
   const { today, tomorrow } = useMemo(() => {
     const today = new Date();
@@ -133,7 +126,32 @@ export function DashboardClient() {
     return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(value);
   };
   
-  if (isUserLoading || salesLoading || expensesLoading || !user) {
+  if (isUserLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+  
+  if (!user) {
+    return (
+       <div className="w-full max-w-lg text-center mt-8">
+        <h1 className="text-5xl font-bold font-headline">Tu negocio, en orden.</h1>
+        <p className="text-xl text-muted-foreground mt-4">Caja Clara te ayuda a tener claridad sobre tus ventas y gastos diarios, sin esfuerzo.</p>
+        <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:justify-center">
+          <Button asChild size="lg" className="h-12 text-lg">
+            <Link href="/signup">Crear mi cuenta gratis</Link>
+          </Button>
+          <Button asChild variant="outline" size="lg" className="h-12 text-lg">
+            <Link href="/login">Ya tengo cuenta</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+  
+  if (salesLoading || expensesLoading) {
     return (
       <div className="flex justify-center items-center h-64">
         <Loader2 className="h-8 w-8 animate-spin" />

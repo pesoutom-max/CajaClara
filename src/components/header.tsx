@@ -14,7 +14,7 @@ export function Header() {
         <Button variant="ghost" asChild>
           <Link href="/dias-anteriores">
             <History className="h-5 w-5 mr-2" />
-            <span className="hidden sm:inline">Días anteriores</span>
+            <span>Días anteriores</span>
           </Link>
         </Button>
       </nav>

@@ -59,9 +59,9 @@ export function DashboardClient({ summary }: DashboardClientProps) {
         </Button>
       </div>
       
-      <div className="text-center text-muted-foreground p-4 mt-4 border-t">
-        <Info className="inline-block mr-2" />
-        <p className="inline">Con esto ya sabes cómo te fue hoy. <br/> <strong>No necesitas sumar nada.</strong></p>
+      <div className="text-center text-foreground p-4 rounded-lg bg-secondary/50">
+        <Info className="inline-block mr-2 h-5 w-5" />
+        <p className="inline text-base">Con esto ya sabes cómo te fue hoy. <br/> <strong>No necesitas sumar nada.</strong></p>
       </div>
 
       {/* Dialogs */}
@@ -69,15 +69,19 @@ export function DashboardClient({ summary }: DashboardClientProps) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="text-2xl">Sumar venta</DialogTitle>
-            <DialogDescription>Anota una nueva venta de forma rápida y sencilla.</DialogDescription>
+            <DialogDescription>
+              Anota el monto y listo.<br />
+              No necesitas escribir qué vendiste.
+            </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="sale-amount" className="text-base">Monto</Label>
               <Input id="sale-amount" type="number" placeholder="Ej: 1500" className="h-12 text-lg" />
+              <p className="text-xs text-muted-foreground">No tiene que ser exacto al peso. Es para tener claridad.</p>
             </div>
             <div className="grid gap-2">
-              <Label className="text-base">Medio de pago</Label>
+              <Label className="text-base">¿Cómo te pagaron?</Label>
               <RadioGroup defaultValue="efectivo" className="flex gap-4">
                 <Label className="flex items-center gap-2 p-3 border rounded-md cursor-pointer flex-1 justify-center has-[:checked]:bg-accent has-[:checked]:border-primary">
                   <RadioGroupItem value="efectivo" id="r1" /> Efectivo

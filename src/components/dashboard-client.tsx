@@ -15,6 +15,7 @@ import { MinusCircle, PlusCircle, Info, Loader2 } from 'lucide-react';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, Timestamp, serverTimestamp } from 'firebase/firestore';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { useToast } from "@/hooks/use-toast";
 
 const saleSchema = z.object({
   amount: z.coerce.number().positive("El monto debe ser un número positivo."),
@@ -33,6 +34,7 @@ export function DashboardClient() {
   const [formattedExpenseAmount, setFormattedExpenseAmount] = useState('');
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
+  const { toast } = useToast();
 
   const { today, tomorrow } = useMemo(() => {
     const today = new Date();
@@ -80,6 +82,11 @@ export function DashboardClient() {
     addDocumentNonBlocking(salesCollection, {
       ...values,
       timestamp: serverTimestamp(),
+    }).then(() => {
+      toast({
+        title: "Venta guardada",
+        description: "Tu venta ha sido registrada con éxito.",
+      })
     });
     saleForm.reset();
     setFormattedSaleAmount('');
@@ -92,6 +99,11 @@ export function DashboardClient() {
     addDocumentNonBlocking(expensesCollection, {
       ...values,
       timestamp: serverTimestamp(),
+    }).then(() => {
+      toast({
+        title: "Gasto guardado",
+        description: "Tu gasto ha sido registrado con éxito.",
+      })
     });
     expenseForm.reset();
     setFormattedExpenseAmount('');

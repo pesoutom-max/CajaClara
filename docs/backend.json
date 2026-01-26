@@ -1,0 +1,218 @@
+{
+  "entities": {
+    "Sale": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Sale",
+      "type": "object",
+      "description": "Represents a sale transaction recorded in the minimarket.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the sale transaction."
+        },
+        "amount": {
+          "type": "number",
+          "description": "The total amount of the sale."
+        },
+        "paymentMethod": {
+          "type": "string",
+          "description": "The method of payment used for the sale (e.g., cash, debit, transfer)."
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "The date and time when the sale was recorded.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "amount",
+        "paymentMethod",
+        "timestamp"
+      ]
+    },
+    "Expense": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Expense",
+      "type": "object",
+      "description": "Represents an expense recorded for the minimarket.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the expense record."
+        },
+        "amount": {
+          "type": "number",
+          "description": "The amount of the expense."
+        },
+        "reason": {
+          "type": "string",
+          "description": "A brief description of the reason for the expense (e.g., groceries, supplier, utilities)."
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "The date and time when the expense was recorded.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "amount",
+        "reason",
+        "timestamp"
+      ]
+    },
+    "QuickProduct": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "QuickProduct",
+      "type": "object",
+      "description": "Represents a frequently sold product for quick sale recording.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the quick product."
+        },
+        "name": {
+          "type": "string",
+          "description": "The short name of the product."
+        },
+        "price": {
+          "type": "number",
+          "description": "The price of the product."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "price"
+      ]
+    },
+    "DailySummary": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "DailySummary",
+      "type": "object",
+      "description": "Represents a summary of sales and expenses for a specific day.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the daily summary."
+        },
+        "date": {
+          "type": "string",
+          "description": "The date for which the summary is calculated.",
+          "format": "date"
+        },
+        "totalSales": {
+          "type": "number",
+          "description": "The total sales amount for the day."
+        },
+        "totalExpenses": {
+          "type": "number",
+          "description": "The total expenses amount for the day."
+        },
+        "expectedCash": {
+          "type": "number",
+          "description": "The expected cash in hand at the end of the day (calculated as totalSales - totalExpenses)."
+        }
+      },
+      "required": [
+        "id",
+        "date",
+        "totalSales",
+        "totalExpenses",
+        "expectedCash"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}/sales/{saleId}",
+        "definition": {
+          "entityName": "Sale",
+          "schema": {
+            "$ref": "#/backend/entities/Sale"
+          },
+          "description": "Stores sale transactions for a specific user.  Path-based ownership ensures only the authenticated user can access their own sales data.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            },
+            {
+              "name": "saleId",
+              "description": "The unique identifier of the sale."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/expenses/{expenseId}",
+        "definition": {
+          "entityName": "Expense",
+          "schema": {
+            "$ref": "#/backend/entities/Expense"
+          },
+          "description": "Stores expense records for a specific user. Path-based ownership ensures only the authenticated user can access their own expense data.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            },
+            {
+              "name": "expenseId",
+              "description": "The unique identifier of the expense."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/quickProducts/{quickProductId}",
+        "definition": {
+          "entityName": "QuickProduct",
+          "schema": {
+            "$ref": "#/backend/entities/QuickProduct"
+          },
+          "description": "Stores quick products for a specific user. Path-based ownership ensures only the authenticated user can access their own quick products.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            },
+            {
+              "name": "quickProductId",
+              "description": "The unique identifier of the quick product."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/dailySummaries/{dailySummaryId}",
+        "definition": {
+          "entityName": "DailySummary",
+          "schema": {
+            "$ref": "#/backend/entities/DailySummary"
+          },
+          "description": "Stores daily summaries for a specific user. Path-based ownership ensures only the authenticated user can access their own daily summaries.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            },
+            {
+              "name": "dailySummaryId",
+              "description": "The unique identifier of the daily summary."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "Given the application's focus on simplicity and the owner-operator model, I recommend structuring the Firestore data around the user. Each user (minimarket owner) will have their own data for sales, expenses, quick products, and daily summaries. This approach provides clear ownership and simplifies security rules. The key to authorization independence here is that each document inherently belongs to the authenticated user.\n\n*   **Sales and Expenses:** Stored as subcollections under the user, making them directly associated with the user. This eliminates the need for complex queries or security rules that traverse multiple documents. It also simplifies listing sales and expenses since these are directly scoped to the authenticated user.\n*   **Quick Products:**  Stored as a subcollection as well, enabling personalized quick product lists per user.\n*   **Daily Summaries:** Stored under the user for easy access and reporting.\n\nThis design supports QAPs because all data is scoped to the user. Listing sales, expenses, quick products, or daily summaries is always a simple query within the user's subcollection. There is no need to filter based on data content, as the path itself establishes ownership.\n\nThe absence of roles and collaborative data further simplifies the structure. Each user's data is isolated, improving security and reducing complexity."
+  }
+}

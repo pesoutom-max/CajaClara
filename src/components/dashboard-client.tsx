@@ -3,12 +3,11 @@
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { MinusCircle, PlusCircle, Plus, Info } from 'lucide-react';
+import { MinusCircle, PlusCircle, Info } from 'lucide-react';
 
 interface Summary {
   totalSales: number;
@@ -16,21 +15,13 @@ interface Summary {
   cashInHand: number;
 }
 
-interface QuickProduct {
-  id: string;
-  name: string;
-  price: number;
-}
-
 interface DashboardClientProps {
   summary: Summary;
-  quickProducts: QuickProduct[];
 }
 
-export function DashboardClient({ summary, quickProducts }: DashboardClientProps) {
+export function DashboardClient({ summary }: DashboardClientProps) {
   const [isSaleOpen, setSaleOpen] = useState(false);
   const [isExpenseOpen, setExpenseOpen] = useState(false);
-  const [isProductOpen, setProductOpen] = useState(false);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(value);
@@ -68,24 +59,6 @@ export function DashboardClient({ summary, quickProducts }: DashboardClientProps
         </Button>
       </div>
       
-      <Accordion type="single" collapsible className="w-full">
-        <AccordionItem value="item-1">
-          <AccordionTrigger className="text-lg font-semibold">Lo que más vendes</AccordionTrigger>
-          <AccordionContent className="space-y-2 pt-4">
-             <p className="text-sm text-muted-foreground px-1 pb-2">Toca para agregar una venta rápida.</p>
-            {quickProducts.map((product) => (
-              <Button key={product.id} variant="outline" className="w-full justify-between h-12" onClick={() => setSaleOpen(true)}>
-                <span>{product.name}</span>
-                <span className="font-mono">{formatCurrency(product.price)}</span>
-              </Button>
-            ))}
-            <Button variant="ghost" className="w-full mt-2" onClick={() => setProductOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" /> Agregar producto rápido
-            </Button>
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
-
       <div className="text-center text-muted-foreground p-4 mt-4 border-t">
         <Info className="inline-block mr-2" />
         <p className="inline">Con esto ya sabes cómo te fue hoy. <br/> <strong>No necesitas sumar nada.</strong></p>
@@ -148,31 +121,6 @@ export function DashboardClient({ summary, quickProducts }: DashboardClientProps
               <Button type="button" variant="secondary">Cancelar</Button>
             </DialogClose>
             <Button type="submit" onClick={() => setExpenseOpen(false)}>Guardar Gasto</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={isProductOpen} onOpenChange={setProductOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="text-2xl">Agregar producto rápido</DialogTitle>
-            <DialogDescription>No necesitas anotar todo perfecto. Esto es solo para tener claridad.</DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="product-name" className="text-base">Nombre corto</Label>
-              <Input id="product-name" placeholder="Ej: Coca-Cola 3L" className="h-12 text-lg" />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="product-price" className="text-base">Precio</Label>
-              <Input id="product-price" type="number" placeholder="Ej: 2500" className="h-12 text-lg" />
-            </div>
-          </div>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button type="button" variant="secondary">Cancelar</Button>
-            </DialogClose>
-            <Button type="submit" onClick={() => setProductOpen(false)}>Guardar Producto</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

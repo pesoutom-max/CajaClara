@@ -29,6 +29,8 @@ const expenseSchema = z.object({
 export function DashboardClient() {
   const [isSaleOpen, setSaleOpen] = useState(false);
   const [isExpenseOpen, setExpenseOpen] = useState(false);
+  const [formattedSaleAmount, setFormattedSaleAmount] = useState('');
+  const [formattedExpenseAmount, setFormattedExpenseAmount] = useState('');
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
 
@@ -80,6 +82,7 @@ export function DashboardClient() {
       timestamp: serverTimestamp(),
     });
     saleForm.reset();
+    setFormattedSaleAmount('');
     setSaleOpen(false);
   };
 
@@ -91,6 +94,7 @@ export function DashboardClient() {
       timestamp: serverTimestamp(),
     });
     expenseForm.reset();
+    setFormattedExpenseAmount('');
     setExpenseOpen(false);
   };
 
@@ -155,7 +159,7 @@ export function DashboardClient() {
       </div>
 
       {/* Dialogs */}
-      <Dialog open={isSaleOpen} onOpenChange={(open) => { setSaleOpen(open); if(!open) saleForm.reset();}}>
+      <Dialog open={isSaleOpen} onOpenChange={(open) => { setSaleOpen(open); if(!open) { saleForm.reset(); setFormattedSaleAmount(''); } }}>
         <DialogContent>
           <Form {...saleForm}>
             <form onSubmit={saleForm.handleSubmit(handleAddSale)}>
@@ -174,7 +178,27 @@ export function DashboardClient() {
                     <FormItem className="grid gap-2">
                       <FormLabel className="text-base">Monto</FormLabel>
                       <FormControl>
-                        <Input {...field} type="number" placeholder="Ej: 1500" className="h-12 text-lg" onChange={e => field.onChange(e.target.valueAsNumber)} value={field.value ?? ''} />
+                        <Input
+                          {...field}
+                          placeholder="Ej: 1500"
+                          className="h-12 text-lg"
+                          inputMode="numeric"
+                          type="text"
+                          value={formattedSaleAmount}
+                          onChange={e => {
+                            const rawValue = e.target.value.replace(/[^\d]/g, '');
+                            if (rawValue === '') {
+                              setFormattedSaleAmount('');
+                              field.onChange(undefined);
+                            } else {
+                              const numberValue = parseInt(rawValue, 10);
+                              if (!isNaN(numberValue)) {
+                                setFormattedSaleAmount(new Intl.NumberFormat('es-CL').format(numberValue));
+                                field.onChange(numberValue);
+                              }
+                            }
+                          }}
+                        />
                       </FormControl>
                       <p className="text-xs text-muted-foreground">No tiene que ser exacto al peso. Es para tener claridad.</p>
                       <FormMessage />
@@ -220,7 +244,7 @@ export function DashboardClient() {
         </DialogContent>
       </Dialog>
       
-      <Dialog open={isExpenseOpen} onOpenChange={(open) => { setExpenseOpen(open); if(!open) expenseForm.reset();}}>
+      <Dialog open={isExpenseOpen} onOpenChange={(open) => { setExpenseOpen(open); if(!open) { expenseForm.reset(); setFormattedExpenseAmount(''); }}}>
         <DialogContent>
            <Form {...expenseForm}>
             <form onSubmit={expenseForm.handleSubmit(handleAddExpense)}>
@@ -236,7 +260,27 @@ export function DashboardClient() {
                     <FormItem className="grid gap-2">
                       <FormLabel className="text-base">Monto</FormLabel>
                       <FormControl>
-                        <Input {...field} type="number" placeholder="Ej: 5000" className="h-12 text-lg" onChange={e => field.onChange(e.target.valueAsNumber)} value={field.value ?? ''} />
+                        <Input
+                           {...field}
+                           placeholder="Ej: 5000"
+                           className="h-12 text-lg"
+                           inputMode="numeric"
+                           type="text"
+                           value={formattedExpenseAmount}
+                           onChange={e => {
+                             const rawValue = e.target.value.replace(/[^\d]/g, '');
+                             if (rawValue === '') {
+                               setFormattedExpenseAmount('');
+                               field.onChange(undefined);
+                             } else {
+                               const numberValue = parseInt(rawValue, 10);
+                               if (!isNaN(numberValue)) {
+                                 setFormattedExpenseAmount(new Intl.NumberFormat('es-CL').format(numberValue));
+                                 field.onChange(numberValue);
+                               }
+                             }
+                           }}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

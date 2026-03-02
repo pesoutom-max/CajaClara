@@ -56,7 +56,8 @@ interface SalesData {
   giftCards: string;
   pedidosYaIceScroll: string;
   pedidosYaWafix: string;
-  pedidosYaMix: string;
+  pedidosYaMixie: string;
+  pedidosYaChurroBlis: string;
   uberEats: string;
   junaeb: string;
 }
@@ -70,7 +71,8 @@ const initialSalesData: SalesData = {
   giftCards: "",
   pedidosYaIceScroll: "",
   pedidosYaWafix: "",
-  pedidosYaMix: "",
+  pedidosYaMixie: "",
+  pedidosYaChurroBlis: "",
   uberEats: "",
   junaeb: "",
 };
@@ -209,13 +211,13 @@ export default function CajaForm() {
 
     const {
       efectivo, tarjetas, transferencias, giftCards,
-      pedidosYaIceScroll, pedidosYaWafix, pedidosYaMix,
+      pedidosYaIceScroll, pedidosYaWafix, pedidosYaMixie, pedidosYaChurroBlis,
       uberEats, junaeb
     } = sales;
 
     const total =
       getNum(efectivo) + getNum(tarjetas) + getNum(transferencias) + getNum(giftCards) +
-      getNum(pedidosYaIceScroll) + getNum(pedidosYaWafix) + getNum(pedidosYaMix) +
+      getNum(pedidosYaIceScroll) + getNum(pedidosYaWafix) + getNum(pedidosYaMixie) + getNum(pedidosYaChurroBlis) +
       getNum(uberEats) + getNum(junaeb);
     setTotalSales(total);
 
@@ -281,7 +283,8 @@ export default function CajaForm() {
     const deliverySalesData: { [key: string]: number } = {
       "Pedidos Ya Ice Scroll": getNum(sales.pedidosYaIceScroll),
       "Pedidos Ya Wafix": getNum(sales.pedidosYaWafix),
-      "Pedidos Ya Mix": getNum(sales.pedidosYaMix),
+      "Pedidos Ya Mixie": getNum(sales.pedidosYaMixie),
+      "Pedidos Ya Churro Blis": getNum(sales.pedidosYaChurroBlis),
       "Uber Eats": getNum(sales.uberEats),
       "Junaeb": getNum(sales.junaeb),
     };
@@ -384,7 +387,8 @@ export default function CajaForm() {
         ['Gift Cards Entregados', formatCurrency(reportData.sales.giftCards)],
         ['Pedidos Ya Ice Scroll', formatCurrency(reportData.sales.pedidosYaIceScroll)],
         ['Pedidos Ya Wafix', formatCurrency(reportData.sales.pedidosYaWafix)],
-        ['Pedidos Ya Mix', formatCurrency(reportData.sales.pedidosYaMix)],
+        ['Pedidos Ya Mixie', formatCurrency(reportData.sales.pedidosYaMixie)],
+        ['Pedidos Ya Churro Blis', formatCurrency(reportData.sales.pedidosYaChurroBlis)],
         ['Uber Eats', formatCurrency(reportData.sales.uberEats)],
         ['Junaeb', formatCurrency(reportData.sales.junaeb)],
         ['Saldo Anterior en Caja', formatCurrency(reportData.sales.saldoAnterior)],
@@ -418,7 +422,8 @@ export default function CajaForm() {
     const totalDelivery =
       reportData.sales.pedidosYaIceScroll +
       reportData.sales.pedidosYaWafix +
-      reportData.sales.pedidosYaMix +
+      reportData.sales.pedidosYaMixie +
+      reportData.sales.pedidosYaChurroBlis +
       reportData.sales.uberEats +
       reportData.sales.junaeb;
 
@@ -595,10 +600,18 @@ Saludos.`;
               inputMode="numeric"
             />
             <InputWithIcon
-              label="Pedidos Ya Mix"
+              label="Pedidos Ya Mixie"
               icon={<Bike className="w-4 h-4" />}
-              value={sales.pedidosYaMix}
-              onChange={(e) => handleInputChange("pedidosYaMix", e.target.value, e)}
+              value={sales.pedidosYaMixie}
+              onChange={(e) => handleInputChange("pedidosYaMixie", e.target.value, e)}
+              placeholder="0"
+              inputMode="numeric"
+            />
+            <InputWithIcon
+              label="Pedidos Ya Churro Blis"
+              icon={<Bike className="w-4 h-4" />}
+              value={sales.pedidosYaChurroBlis}
+              onChange={(e) => handleInputChange("pedidosYaChurroBlis", e.target.value, e)}
               placeholder="0"
               inputMode="numeric"
             />

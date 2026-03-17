@@ -1,125 +1,57 @@
-/**
- * Core Philosophy: This ruleset enforces a strict user-ownership model. All data,
- * including sales, expenses, and product lists, is private and isolated to the
- * authenticated user who created it. There is no concept of public data or
-
- * shared access between users.
- *
- * Data Structure: The entire Firestore database is structured hierarchically under
- * the `/users/{userId}` path. Each user's data (sales, expenses, etc.) is stored
- * in dedicated subcollections within their own document tree. This path-based
- * ownership is the cornerstone of the security model.
- *
- * Key Security Decisions:
- * - User Isolation: A user can only ever access documents located under their
- *   own user ID path (`/users/{request.auth.uid}`).
- * - No Public Listing: It is impossible to list all users in the system.
- *   The top-level `/users` collection is not listable by regular users.
- * - Ownership is Final: All data belongs to the user defined by the path.
- *   This relationship is enforced at creation and cannot be changed.
- * - Prototyping Flexibility: These rules strictly control *who* can access
- *   data but do not validate the *shape* of the data itself, allowing for
- *   rapid front-end development and iteration on the data model.
- */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper Functions for Reusable Logic
-
-    /**
-     * Checks if a user is authenticated.
-     */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /**
-     * Checks if the currently authenticated user's UID matches the
-     * document's owner UID from the path.
-     */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    /**
-     * Checks for ownership on an existing document. Used for safe updates
-     * and deletes to prevent operations on non-existent data.
-     */
-    function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
-    }
-    
-    /**
-     * Checks if the requesting user has the 'master' role by reading their
-     * own user profile document. This is now more robust, checking for the
-     * document's existence before trying to access its data.
-     */
-    function isMaster() {
-      return isSignedIn() 
-        && exists(/databases/$(database)/documents/users/$(request.auth.uid)) 
-        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'master';
+    function myUserDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
     }
 
-    /**
-     * @description Controls access to user profile documents.
-     * @path /users/{userId}
-     * @allow A 'master' user can view any user's profile. (get, list)
-     * @allow A user can create or view their own profile. (create, get)
-     * @allow A 'master' user can create new user profiles. (create)
-     * @allow A 'master' user can update any user profile. A regular user can update their own, but not their role. (update)
-     * @principle Enforces administrative control while allowing self-management.
-     */
+    function isMaster() {
+      return isSignedIn()
+        && myUserDoc().data.role == "master"
+        && myUserDoc().data.isActive == true;
+    }
+
     match /users/{userId} {
       allow get: if isOwner(userId) || isMaster();
       allow list: if isMaster();
       allow create: if isOwner(userId) || isMaster();
-      allow update: if (isOwner(userId) && request.resource.data.role == resource.data.role) || isMaster();
-      allow delete: if isExistingOwner(userId);
+      allow update: if isOwner(userId) || isMaster();
+      allow delete: if isMaster();
     }
 
-    /**
-     * @description Secures a user's private collection of sale transactions.
-     * @path /users/{userId}/sales/{saleId}
-     * @allow The owner (uid: 'user_abc') can create a new sale document in their own subcollection. (create)
-     * @deny Another user (uid: 'user_xyz') cannot read sales from `/users/user_abc/sales`. (list, get)
-     * @principle Restricts access to a user's own data tree using path-based security.
-     */
     match /users/{userId}/sales/{saleId} {
-      allow read, write: if isOwner(userId);
+      allow get, list, create: if isOwner(userId);
+      allow update, delete: if isOwner(userId) && resource != null;
     }
 
-    /**
-     * @description Secures a user's private collection of expense records.
-     * @path /users/{userId}/expenses/{expenseId}
-     * @allow The owner (uid: 'user_abc') can update an existing expense in their own subcollection. (update)
-     * @deny An anonymous user cannot access any expense records. (get, list, create, update, delete)
-     * @principle Restricts access to a user's own data tree using path-based security.
-     */
     match /users/{userId}/expenses/{expenseId} {
-      allow read, write: if isOwner(userId);
+      allow get, list, create: if isOwner(userId);
+      allow update, delete: if isOwner(userId) && resource != null;
     }
 
-    /**
-     * @description Secures a user's private list of quick-access products.
-     * @path /users/{userId}/quickProducts/{quickProductId}
-     * @allow The owner (uid: 'user_abc') can delete a quick product from their own list. (delete)
-     * @deny A signed-in user (uid: 'user_xyz') cannot create a quick product for another user. (create)
-     * @principle Restricts access to a user's own data tree using path-based security.
-     */
     match /users/{userId}/quickProducts/{quickProductId} {
-      allow read, write: if isOwner(userId);
+      allow get, list, create: if isOwner(userId);
+      allow update, delete: if isOwner(userId) && resource != null;
     }
 
-    /**
-     * @description Secures a user's private collection of daily financial summaries.
-     * @path /users/{userId}/dailySummaries/{dailySummaryId}
-     * @allow The owner (uid: 'user_abc') can list all of their own daily summaries. (list)
-     * @deny Another user (uid: 'user_xyz') cannot delete a summary from `/users/user_abc/dailySummaries`. (delete)
-     * @principle Restricts access to a user's own data tree using path-based security.
-     */
     match /users/{userId}/dailySummaries/{dailySummaryId} {
-      allow read, write: if isOwner(userId);
+      allow get, list, create: if isOwner(userId);
+      allow update, delete: if isOwner(userId) && resource != null;
+    }
+
+    // New rule for Daily Closes
+    match /users/{userId}/daily_closes/{dailyCloseId} {
+      allow get, list, create: if isOwner(userId);
+      allow update, delete: if isOwner(userId) && resource != null;
     }
   }
 }

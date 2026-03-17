@@ -43,7 +43,7 @@ export default function AdminUsersPage() {
           </div>
           <div className="w-full text-center mb-8">
             <h1 className="text-4xl font-bold font-headline">Administración de Usuarios</h1>
-            <p className="text-muted-foreground mt-2">Activa o desactiva usuarios del sistema.</p>
+            <p className="text-muted-foreground mt-2 font-medium">Caja Clara <span className="font-normal opacity-70">by FacilPyme.cl</span></p>
           </div>
           
           {(isLoading && (!users || users.length === 0)) ? (

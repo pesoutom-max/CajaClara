@@ -21,8 +21,8 @@ export function Header({ userProfile }: { userProfile: UserProfile | null }) {
   return (
     <header className="w-full max-w-4xl mx-auto p-4 flex justify-between items-center">
       <Link href="/" className="flex items-center gap-2 text-xl font-bold text-foreground">
-        <Logo className="h-8 w-8" />
-        <h1 className="font-headline">Caja Clara</h1>
+        <Logo className="h-8 w-8 text-primary" />
+        <h1 className="font-headline tracking-tight">Caja Clara <span className="text-sm font-normal text-muted-foreground ml-1">by FacilPyme.cl</span></h1>
       </Link>
       <nav className="flex items-center gap-2">
         {userProfile ? (

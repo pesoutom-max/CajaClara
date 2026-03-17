@@ -148,7 +148,7 @@ export function DashboardClient() {
       return (
          <div className="w-full max-w-lg text-center mt-8">
           <h1 className="text-5xl font-bold font-headline">Tu negocio, en orden.</h1>
-          <p className="text-xl text-muted-foreground mt-4">Caja Clara te ayuda a tener claridad sobre tus ventas y gastos diarios, sin esfuerzo.</p>
+          <p className="text-xl text-muted-foreground mt-4">Caja Clara <span className="text-base font-normal">by FacilPyme.cl</span> te ayuda a tener claridad sobre tus ventas y gastos diarios, sin esfuerzo.</p>
           <div className="mt-10 flex justify-center">
             <Button asChild size="lg" className="h-12 text-lg">
               <Link href="/login">Iniciar Sesión</Link>

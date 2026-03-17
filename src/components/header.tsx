@@ -2,14 +2,14 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { History, LogOut } from 'lucide-react';
+import { History, LogOut, Shield } from 'lucide-react';
 import { Logo } from '@/components/icons/logo';
-import { useUser, useAuth } from '@/firebase';
+import { useAuth } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
+import type { UserProfile } from '@/lib/user-profiles';
 
-export function Header() {
-  const { user } = useUser();
+export function Header({ userProfile }: { userProfile: UserProfile | null }) {
   const auth = useAuth();
   const router = useRouter();
 
@@ -25,8 +25,14 @@ export function Header() {
         <h1 className="font-headline">Caja Clara</h1>
       </Link>
       <nav className="flex items-center gap-2">
-        {user ? (
+        {userProfile ? (
           <>
+            {userProfile.role === 'master' && (
+              <Button variant="ghost" disabled>
+                <Shield className="h-5 w-5 mr-2" />
+                Administración
+              </Button>
+            )}
             <Button variant="ghost" asChild>
               <Link href="/dias-anteriores">
                 <History className="h-5 w-5 mr-2" />

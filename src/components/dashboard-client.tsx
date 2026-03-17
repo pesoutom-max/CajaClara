@@ -139,12 +139,9 @@ export function DashboardClient() {
        <div className="w-full max-w-lg text-center mt-8">
         <h1 className="text-5xl font-bold font-headline">Tu negocio, en orden.</h1>
         <p className="text-xl text-muted-foreground mt-4">Caja Clara te ayuda a tener claridad sobre tus ventas y gastos diarios, sin esfuerzo.</p>
-        <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:justify-center">
+        <div className="mt-10 flex justify-center">
           <Button asChild size="lg" className="h-12 text-lg">
-            <Link href="/signup">Crear mi cuenta gratis</Link>
-          </Button>
-          <Button asChild variant="outline" size="lg" className="h-12 text-lg">
-            <Link href="/login">Ya tengo cuenta</Link>
+            <Link href="/login">Iniciar Sesión</Link>
           </Button>
         </div>
       </div>

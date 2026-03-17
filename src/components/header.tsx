@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { History, LogOut, Shield } from 'lucide-react';
+import { History, LogOut, Users } from 'lucide-react';
 import { Logo } from '@/components/icons/logo';
 import { useAuth } from '@/firebase';
 import { signOut } from 'firebase/auth';
@@ -28,9 +28,11 @@ export function Header({ userProfile }: { userProfile: UserProfile | null }) {
         {userProfile ? (
           <>
             {userProfile.role === 'master' && (
-              <Button variant="ghost" disabled>
-                <Shield className="h-5 w-5 mr-2" />
-                Administración
+              <Button variant="ghost" asChild>
+                <Link href="/admin/users">
+                  <Users className="h-5 w-5 mr-2" />
+                  Usuarios
+                </Link>
               </Button>
             )}
             <Button variant="ghost" asChild>

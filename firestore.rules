@@ -2,6 +2,7 @@
  * Core Philosophy: This ruleset enforces a strict user-ownership model. All data,
  * including sales, expenses, and product lists, is private and isolated to the
  * authenticated user who created it. There is no concept of public data or
+
  * shared access between users.
  *
  * Data Structure: The entire Firestore database is structured hierarchically under
@@ -13,7 +14,7 @@
  * - User Isolation: A user can only ever access documents located under their
  *   own user ID path (`/users/{request.auth.uid}`).
  * - No Public Listing: It is impossible to list all users in the system.
- *   The top-level `/users` collection is not listable.
+ *   The top-level `/users` collection is not listable by regular users.
  * - Ownership is Final: All data belongs to the user defined by the path.
  *   This relationship is enforced at creation and cannot be changed.
  * - Prototyping Flexibility: These rules strictly control *who* can access
@@ -50,25 +51,26 @@ service cloud.firestore {
     }
     
     /**
-     * Checks if the requesting user has the 'master' role.
+     * Checks if the requesting user has the 'master' role by reading their
+     * own user profile document.
      */
     function isMaster() {
       return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'master';
     }
 
     /**
-     * @description Controls access to a user's root document.
+     * @description Controls access to user profile documents.
      * @path /users/{userId}
-     * @allow A signed-in user (uid: 'user_abc') can create their own user document at `/users/user_abc`. (create)
-     * @deny A signed-in user (uid: 'user_abc') cannot get another user's document at `/users/user_xyz`. (get)
-     * @principle Establishes a user's private data root and prevents enumeration of other users.
+     * @allow A 'master' user can view any user's profile. (get, list)
+     * @allow A user can create or view their own profile. (create, get)
+     * @allow A 'master' user can create new user profiles. (create)
+     * @allow A 'master' user can update any user profile. A regular user can update their own, but not their role. (update)
+     * @principle Enforces administrative control while allowing self-management.
      */
     match /users/{userId} {
       allow get: if isOwner(userId) || isMaster();
       allow list: if isMaster();
-      allow create: if isOwner(userId);
-      // A user can update their own document, but they are not allowed to change
-      // their own role. This prevents privilege escalation. A master can update any user.
+      allow create: if isOwner(userId) || isMaster();
       allow update: if (isOwner(userId) && request.resource.data.role == resource.data.role) || isMaster();
       allow delete: if isExistingOwner(userId);
     }
@@ -81,11 +83,7 @@ service cloud.firestore {
      * @principle Restricts access to a user's own data tree using path-based security.
      */
     match /users/{userId}/sales/{saleId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId);
-      allow update: if isExistingOwner(userId);
-      allow delete: if isExistingOwner(userId);
+      allow read, write: if isOwner(userId);
     }
 
     /**
@@ -96,11 +94,7 @@ service cloud.firestore {
      * @principle Restricts access to a user's own data tree using path-based security.
      */
     match /users/{userId}/expenses/{expenseId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId);
-      allow update: if isExistingOwner(userId);
-      allow delete: if isExistingOwner(userId);
+      allow read, write: if isOwner(userId);
     }
 
     /**
@@ -111,11 +105,7 @@ service cloud.firestore {
      * @principle Restricts access to a user's own data tree using path-based security.
      */
     match /users/{userId}/quickProducts/{quickProductId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId);
-      allow update: if isExistingOwner(userId);
-      allow delete: if isExistingOwner(userId);
+      allow read, write: if isOwner(userId);
     }
 
     /**
@@ -126,11 +116,7 @@ service cloud.firestore {
      * @principle Restricts access to a user's own data tree using path-based security.
      */
     match /users/{userId}/dailySummaries/{dailySummaryId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId);
-      allow update: if isExistingOwner(userId);
-      allow delete: if isExistingOwner(userId);
+      allow read, write: if isOwner(userId);
     }
   }
 }

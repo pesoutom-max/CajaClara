@@ -69,12 +69,6 @@ export function EditUserDialog({ isOpen, onOpenChange, user, currentUserId }: Ed
     }
   }, [user, form]);
 
-  const handleClose = (open: boolean) => {
-    // If the dialog is being closed AND a submission is in progress, prevent it.
-    if (!open && isLoading) return;
-    onOpenChange(open);
-  };
-
   const onSubmit = async (values: EditUserFormValues) => {
     if (!firestore || !user) return;
     
@@ -105,6 +99,8 @@ export function EditUserDialog({ isOpen, onOpenChange, user, currentUserId }: Ed
       });
     } finally {
       setIsLoading(false);
+      // We only close if success is true. If success is false, the dialog stays open
+      // and isLoading is false, allowing the user to try again or close manually.
       if (success) {
         onOpenChange(false);
       }
@@ -113,9 +109,12 @@ export function EditUserDialog({ isOpen, onOpenChange, user, currentUserId }: Ed
 
 
   return (
-    // The `onOpenChange` now correctly handles the boolean state passed by the Dialog component.
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[425px]">
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent 
+        className="sm:max-w-[425px]"
+        onPointerDownOutside={(e) => isLoading && e.preventDefault()}
+        onEscapeKeyDown={(e) => isLoading && e.preventDefault()}
+      >
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <DialogHeader>

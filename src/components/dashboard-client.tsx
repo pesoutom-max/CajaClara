@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { MinusCircle, PlusCircle, Info, Loader2 } from 'lucide-react';
+import { MinusCircle, PlusCircle, Info, Loader2, CheckCircle2 } from 'lucide-react';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, where, Timestamp, serverTimestamp, doc } from 'firebase/firestore';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
@@ -19,6 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import Link from 'next/link';
 import type { UserProfile } from '@/lib/user-profiles';
 import { Header } from '@/components/header';
+import { DailyCloseDialog } from '@/components/daily-close-dialog';
 
 const saleSchema = z.object({
   amount: z.coerce.number().positive("El monto debe ser un número positivo."),
@@ -35,6 +36,7 @@ export function DashboardClient() {
   const [isExpenseOpen, setExpenseOpen] = useState(false);
   const [formattedSaleAmount, setFormattedSaleAmount] = useState('');
   const [formattedExpenseAmount, setFormattedExpenseAmount] = useState('');
+  const [isDailyCloseOpen, setDailyCloseOpen] = useState(false);
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
@@ -124,10 +126,21 @@ export function DashboardClient() {
     const totalSales = sales?.reduce((sum, sale) => sum + sale.amount, 0) ?? 0;
     const totalExpenses = expenses?.reduce((sum, expense) => sum + expense.amount, 0) ?? 0;
     const cashSales = sales?.filter(s => s.paymentMethod === 'efectivo').reduce((sum, sale) => sum + sale.amount, 0) ?? 0;
+    const debitSales = sales?.filter(s => s.paymentMethod === 'debito').reduce((sum, sale) => sum + sale.amount, 0) ?? 0;
+    const transferSales = sales?.filter(s => s.paymentMethod === 'transferencia').reduce((sum, sale) => sum + sale.amount, 0) ?? 0;
     // Assuming all expenses are cash for now
     const expectedCash = cashSales - totalExpenses;
 
-    return { totalSales, totalExpenses, expectedCash };
+    return { 
+      totalSales, 
+      totalExpenses, 
+      expectedCash,
+      paymentMethods: {
+        efectivo: cashSales,
+        debito: debitSales,
+        transferencia: transferSales
+      }
+    };
   }, [sales, expenses]);
 
 
@@ -222,12 +235,22 @@ export function DashboardClient() {
           </CardContent>
         </Card>
   
-        <div className="grid grid-cols-2 gap-4">
-          <Button size="lg" className="h-16 text-lg" onClick={() => setSaleOpen(true)}>
-            <PlusCircle className="mr-2 h-6 w-6" /> Sumar venta
-          </Button>
-          <Button size="lg" variant="secondary" className="h-16 text-lg" onClick={() => setExpenseOpen(true)}>
-            <MinusCircle className="mr-2 h-6 w-6" /> Anotar gasto
+        <div className="flex flex-col gap-4">
+          <div className="grid grid-cols-2 gap-4">
+            <Button size="lg" className="h-16 text-lg" onClick={() => setSaleOpen(true)}>
+              <PlusCircle className="mr-2 h-6 w-6" /> Sumar venta
+            </Button>
+            <Button size="lg" variant="secondary" className="h-16 text-lg" onClick={() => setExpenseOpen(true)}>
+              <MinusCircle className="mr-2 h-6 w-6" /> Anotar gasto
+            </Button>
+          </div>
+          <Button 
+            size="lg" 
+            variant="outline" 
+            className="h-14 border-primary text-primary hover:bg-primary/5 font-semibold"
+            onClick={() => setDailyCloseOpen(true)}
+          >
+            <CheckCircle2 className="mr-2 h-5 w-5" /> Cerrar Caja del Día
           </Button>
         </div>
         
@@ -388,6 +411,18 @@ export function DashboardClient() {
             </Form>
           </DialogContent>
         </Dialog>
+
+        <DailyCloseDialog 
+          isOpen={isDailyCloseOpen}
+          onOpenChange={setDailyCloseOpen}
+          uid={user?.uid ?? ''}
+          systemExpectedCash={summary.expectedCash}
+          stats={{
+            totalSales: summary.totalSales,
+            totalExpenses: summary.totalExpenses,
+            paymentMethods: summary.paymentMethods
+          }}
+        />
       </div>
     );
   };

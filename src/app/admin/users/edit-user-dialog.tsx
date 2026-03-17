@@ -85,6 +85,7 @@ export function EditUserDialog({ isOpen, onOpenChange, user, currentUserId }: Ed
           title: 'Usuario actualizado',
           description: `Los datos de ${values.name} han sido actualizados.`,
         });
+        setIsLoading(false);
         handleClose();
       })
       .catch((serverError) => {
@@ -99,8 +100,6 @@ export function EditUserDialog({ isOpen, onOpenChange, user, currentUserId }: Ed
           title: 'Error al actualizar',
           description: 'No tienes permiso para realizar esta acción o ocurrió un error.',
         });
-      })
-      .finally(() => {
         setIsLoading(false);
       });
   };

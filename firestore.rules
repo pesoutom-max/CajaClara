@@ -60,7 +60,9 @@ service cloud.firestore {
       allow get: if isOwner(userId);
       allow list: if false; // CRITICAL: Prevents listing all users in the app.
       allow create: if isOwner(userId);
-      allow update: if isExistingOwner(userId);
+      // A user can update their own document, but they are not allowed to change
+      // their own role. This prevents privilege escalation.
+      allow update: if isOwner(userId) && request.resource.data.role == resource.data.role;
       allow delete: if isExistingOwner(userId);
     }
 

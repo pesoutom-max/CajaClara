@@ -77,7 +77,9 @@ export function EditUserDialog({ isOpen, onOpenChange, user, currentUserId }: Ed
 
   const onSubmit = async (values: EditUserFormValues) => {
     if (!firestore || !user) return;
+    
     setIsLoading(true);
+    let success = false;
 
     try {
       const userRef = doc(firestore, 'users', user.id);
@@ -87,9 +89,7 @@ export function EditUserDialog({ isOpen, onOpenChange, user, currentUserId }: Ed
         title: 'Usuario actualizado',
         description: `Los datos de ${values.name} han sido actualizados.`,
       });
-
-      // Close the dialog on success.
-      onOpenChange(false);
+      success = true;
     } catch (serverError) {
       const userRef = doc(firestore, 'users', user.id);
       const permissionError = new FirestorePermissionError({
@@ -104,8 +104,10 @@ export function EditUserDialog({ isOpen, onOpenChange, user, currentUserId }: Ed
         description: 'No tienes permiso para realizar esta acción o ocurrió un error.',
       });
     } finally {
-      // This block ensures the loading state is always reset, preventing a frozen UI.
       setIsLoading(false);
+      if (success) {
+        onOpenChange(false);
+      }
     }
   };
 

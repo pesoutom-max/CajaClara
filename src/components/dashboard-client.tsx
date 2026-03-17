@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { MinusCircle, PlusCircle, Info, Loader2, AlertCircle } from 'lucide-react';
+import { MinusCircle, PlusCircle, Info, Loader2 } from 'lucide-react';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, where, Timestamp, serverTimestamp, doc } from 'firebase/firestore';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
@@ -161,14 +161,15 @@ export function DashboardClient() {
     if (user && !userProfile && !isProfileLoading) {
       return (
         <div className="w-full max-w-lg mx-auto mt-8 text-center">
-            <Card className="bg-destructive/10 border-destructive">
+            <Card className="border-primary/50 bg-secondary/30">
                 <CardHeader>
-                    <CardTitle className="flex items-center justify-center gap-2 text-destructive">
-                        <AlertCircle /> Error de Cuenta
+                    <CardTitle className="flex items-center justify-center gap-2 text-foreground">
+                        <Info /> Perfil no encontrado
                     </CardTitle>
                 </CardHeader>
-                <CardContent>
-                    <p>No se pudo cargar tu perfil de usuario. Por favor, contacta al administrador.</p>
+                <CardContent className="text-center space-y-4 pt-6">
+                    <p>Tu cuenta de usuario está autenticada, pero no tiene un perfil de datos asociado en Firestore.</p>
+                    <p className="font-semibold">Si eres el administrador, debes crear tu documento de perfil manualmente en la base de datos para completar la configuración inicial.</p>
                 </CardContent>
             </Card>
         </div>
@@ -182,7 +183,7 @@ export function DashboardClient() {
                     <CardHeader>
                         <CardTitle className="text-2xl">Cuenta Desactivada</CardTitle>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="pt-6">
                         <p>Tu cuenta se encuentra desactivada. Por favor, contacta al administrador para más información.</p>
                     </CardContent>
                 </Card>
@@ -205,7 +206,7 @@ export function DashboardClient() {
             <CardTitle className="text-3xl font-headline">Así va tu día</CardTitle>
             <CardDescription>Resumen de hoy</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 pt-6">
             <div className="flex justify-between items-center p-4 bg-secondary/50 rounded-lg">
               <span className="text-lg">Hoy llevas vendidos</span>
               <span className="text-2xl font-bold text-positive">{formatCurrency(summary.totalSales)}</span>

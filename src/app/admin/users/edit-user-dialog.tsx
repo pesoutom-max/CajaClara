@@ -47,14 +47,27 @@ export function EditUserDialog({ isOpen, onOpenChange, user, currentUserId }: Ed
   const [isLoading, setIsLoading] = useState(false);
   const [lastUser, setLastUser] = useState<UserProfile | null>(null);
 
-  // Safety cleanup: If this component unmounts for any reason, force restore body interaction.
-  // This is a brute-force fix for Radix UI's persistent body-lock issue when unmounted abruptly.
+  // Force-cleanup for UI freeze. 
+  // Radix UI sometimes fails to remove the body lock if the sequence of events is too fast.
   useEffect(() => {
-    return () => {
-      document.body.style.pointerEvents = 'auto';
-      document.body.style.overflow = 'auto';
-    };
-  }, []);
+    if (!isOpen) {
+      const cleanup = () => {
+        if (typeof document !== 'undefined') {
+          document.body.style.pointerEvents = 'auto';
+          document.body.style.overflow = 'auto';
+          // Also check for aria-hidden on the main content containers
+          const main = document.querySelector('main');
+          if (main) main.removeAttribute('aria-hidden');
+          document.body.removeAttribute('aria-hidden');
+        }
+      };
+      
+      // Run once immediately and once after a short delay to be absolutely sure
+      cleanup();
+      const timer = setTimeout(cleanup, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
 
   // Use the current user if available, otherwise fallback to the last user
   // This keeps the dialog content filled while it's closing.

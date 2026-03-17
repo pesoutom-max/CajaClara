@@ -122,7 +122,11 @@ export function UsersTable({ users, currentUserId, onEditUser }: UsersTableProps
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => onEditUser(user)}>
+                          <DropdownMenuItem onSelect={(e) => {
+                            e.preventDefault();
+                            // Small delay to let the dropdown start its closing sequence
+                            setTimeout(() => onEditUser(user), 0);
+                          }}>
                             Editar
                           </DropdownMenuItem>
                         </DropdownMenuContent>

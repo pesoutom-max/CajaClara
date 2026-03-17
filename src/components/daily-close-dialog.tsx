@@ -88,30 +88,61 @@ export function DailyCloseDialog({
   };
 
   const onSubmit = (values: DailyCloseValues) => {
+    if (!uid) {
+      toast({
+        title: "Error de usuario",
+        description: "No se pudo identificar al usuario activo.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const dailyClosesCollection = collection(firestore, "users", uid, "daily_closes");
     
-    addDocumentNonBlocking(dailyClosesCollection, {
+    // Sanitize values to prevent Firestore crashes from NaN
+    const payload = {
       date: serverTimestamp(),
-      systemCash: systemExpectedCash,
-      countedCash: values.countedCash,
-      difference: values.countedCash - systemExpectedCash,
+      systemCash: Number(systemExpectedCash) || 0,
+      countedCash: Number(values.countedCash) || 0,
+      difference: (Number(values.countedCash) || 0) - (Number(systemExpectedCash) || 0),
       withdrawal: {
-        amount: values.withdrawal,
-        note: values.withdrawalNote || "",
+        amount: Number(values.withdrawal) || 0,
+        note: (values.withdrawalNote || "").trim(),
       },
-      tomorrowBalance: values.countedCash - values.withdrawal,
-      stats: stats,
+      tomorrowBalance: (Number(values.countedCash) || 0) - (Number(values.withdrawal) || 0),
+      stats: {
+        totalSales: Number(stats.totalSales) || 0,
+        totalExpenses: Number(stats.totalExpenses) || 0,
+        paymentMethods: {
+          efectivo: Number(stats.paymentMethods.efectivo) || 0,
+          debito: Number(stats.paymentMethods.debito) || 0,
+          transferencia: Number(stats.paymentMethods.transferencia) || 0,
+        }
+      },
       timestamp: serverTimestamp(),
-    }).then(() => {
-      toast({
-        title: "Cierre de caja guardado",
-        description: "El cierre del día se ha registrado correctamente.",
+    };
+
+    addDocumentNonBlocking(dailyClosesCollection, payload)
+      .then((docRef) => {
+        // If docRef is undefined but no error was thrown, addDocumentNonBlocking's catch might have swallowed a real error
+        // But usually successful addDoc returns DocumentReference
+        toast({
+          title: "Cierre de caja guardado",
+          description: "El cierre del día se ha registrado correctamente.",
+        });
+        onOpenChange(false);
+        form.reset();
+        setFormattedCounted("");
+        setFormattedWithdrawal("");
+      })
+      .catch((error) => {
+        console.error("Error saving daily close:", error);
+        toast({
+          title: "Error al guardar",
+          description: "Hubo un problema al registrar el cierre en la base de datos.",
+          variant: "destructive",
+        });
       });
-      onOpenChange(false);
-      form.reset();
-      setFormattedCounted("");
-      setFormattedWithdrawal("");
-    });
   };
 
   return (

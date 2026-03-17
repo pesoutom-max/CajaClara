@@ -123,23 +123,23 @@ export function DashboardClient() {
   };
 
   const summary = useMemo(() => {
-    const totalSales = (sales || []).reduce((sum, sale: any) => sum + sale.amount, 0);
-    const totalExpenses = (expenses || []).reduce((sum, expense: any) => sum + expense.amount, 0);
-    const cashSales = (sales || []).filter((s: any) => s.paymentMethod === 'efectivo').reduce((sum, sale: any) => sum + sale.amount, 0);
-    const debitSales = (sales || []).filter((s: any) => s.paymentMethod === 'debito').reduce((sum, sale: any) => sum + sale.amount, 0);
-    const transferSales = (sales || []).filter((s: any) => s.paymentMethod === 'transferencia').reduce((sum, sale: any) => sum + sale.amount, 0);
+    const totalSales = (sales || []).reduce((sum, sale: any) => sum + (Number(sale.amount) || 0), 0);
+    const totalExpenses = (expenses || []).reduce((sum, expense: any) => sum + (Number(expense.amount) || 0), 0);
+    const cashSales = (sales || []).filter((s: any) => s.paymentMethod === 'efectivo').reduce((sum, sale: any) => sum + (Number(sale.amount) || 0), 0);
+    const debitSales = (sales || []).filter((s: any) => s.paymentMethod === 'debito').reduce((sum, sale: any) => sum + (Number(sale.amount) || 0), 0);
+    const transferSales = (sales || []).filter((s: any) => s.paymentMethod === 'transferencia').reduce((sum, sale: any) => sum + (Number(sale.amount) || 0), 0);
     
-    // Assuming all expenses are cash for now
-    const expectedCash = cashSales - totalExpenses;
+    // Ensure we don't return NaN values to Firestore later
+    const expectedCash = Math.max(0, cashSales - totalExpenses);
 
     return { 
-      totalSales, 
-      totalExpenses, 
+      totalSales: Math.max(0, totalSales), 
+      totalExpenses: Math.max(0, totalExpenses), 
       expectedCash,
       paymentMethods: {
-        efectivo: cashSales,
-        debito: debitSales,
-        transferencia: transferSales
+        efectivo: Math.max(0, cashSales),
+        debito: Math.max(0, debitSales),
+        transferencia: Math.max(0, transferSales)
       }
     };
   }, [sales, expenses]);

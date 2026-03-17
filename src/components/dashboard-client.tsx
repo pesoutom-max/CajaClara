@@ -123,11 +123,12 @@ export function DashboardClient() {
   };
 
   const summary = useMemo(() => {
-    const totalSales = sales?.reduce((sum, sale) => sum + sale.amount, 0) ?? 0;
-    const totalExpenses = expenses?.reduce((sum, expense) => sum + expense.amount, 0) ?? 0;
-    const cashSales = sales?.filter(s => s.paymentMethod === 'efectivo').reduce((sum, sale) => sum + sale.amount, 0) ?? 0;
-    const debitSales = sales?.filter(s => s.paymentMethod === 'debito').reduce((sum, sale) => sum + sale.amount, 0) ?? 0;
-    const transferSales = sales?.filter(s => s.paymentMethod === 'transferencia').reduce((sum, sale) => sum + sale.amount, 0) ?? 0;
+    const totalSales = (sales || []).reduce((sum, sale: any) => sum + sale.amount, 0);
+    const totalExpenses = (expenses || []).reduce((sum, expense: any) => sum + expense.amount, 0);
+    const cashSales = (sales || []).filter((s: any) => s.paymentMethod === 'efectivo').reduce((sum, sale: any) => sum + sale.amount, 0);
+    const debitSales = (sales || []).filter((s: any) => s.paymentMethod === 'debito').reduce((sum, sale: any) => sum + sale.amount, 0);
+    const transferSales = (sales || []).filter((s: any) => s.paymentMethod === 'transferencia').reduce((sum, sale: any) => sum + sale.amount, 0);
+    
     // Assuming all expenses are cash for now
     const expectedCash = cashSales - totalExpenses;
 

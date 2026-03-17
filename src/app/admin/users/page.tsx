@@ -8,12 +8,15 @@ import { collection } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/user-profiles';
 import { UsersTable } from './users-table';
 import { CreateUserDialog } from './create-user-dialog';
+import { EditUserDialog } from './edit-user-dialog';
 import { useState } from 'react';
 
 export default function AdminUsersPage() {
   const firestore = useFirestore();
   const { user: currentUser } = useUser();
   const [isCreateDialogOpen, setCreateDialogOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
+  const [isEditUserDialogOpen, setIsEditUserDialogOpen] = useState(false);
 
   const usersQuery = useMemoFirebase(
     () => (firestore ? collection(firestore, 'users') : null),
@@ -43,16 +46,32 @@ export default function AdminUsersPage() {
             <p className="text-muted-foreground mt-2">Activa o desactiva usuarios del sistema.</p>
           </div>
           
-          {isLoading ? (
+          {(isLoading && (!users || users.length === 0)) ? (
             <div className="flex justify-center items-center h-64">
               <Loader2 className="h-8 w-8 animate-spin" />
             </div>
           ) : (
-            <UsersTable users={users ?? []} currentUserId={currentUser?.uid} />
+            <UsersTable 
+              users={users ?? []} 
+              currentUserId={currentUser?.uid} 
+              onEditUser={(user) => {
+                setEditingUser(user);
+                setIsEditUserDialogOpen(true);
+              }}
+            />
           )}
         </main>
       </div>
       <CreateUserDialog isOpen={isCreateDialogOpen} onOpenChange={setCreateDialogOpen} adminId={currentUser?.uid} />
+      <EditUserDialog 
+        isOpen={isEditUserDialogOpen} 
+        onOpenChange={(open) => {
+          setIsEditUserDialogOpen(open);
+          if (!open) setTimeout(() => setEditingUser(null), 500);
+        }} 
+        user={editingUser} 
+        currentUserId={currentUser?.uid} 
+      />
     </>
   );
 }

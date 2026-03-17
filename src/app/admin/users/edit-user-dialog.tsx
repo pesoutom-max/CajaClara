@@ -47,6 +47,15 @@ export function EditUserDialog({ isOpen, onOpenChange, user, currentUserId }: Ed
   const [isLoading, setIsLoading] = useState(false);
   const [lastUser, setLastUser] = useState<UserProfile | null>(null);
 
+  // Safety cleanup: If this component unmounts for any reason, force restore body interaction.
+  // This is a brute-force fix for Radix UI's persistent body-lock issue when unmounted abruptly.
+  useEffect(() => {
+    return () => {
+      document.body.style.pointerEvents = 'auto';
+      document.body.style.overflow = 'auto';
+    };
+  }, []);
+
   // Use the current user if available, otherwise fallback to the last user
   // This keeps the dialog content filled while it's closing.
   const displayUser = user || lastUser;

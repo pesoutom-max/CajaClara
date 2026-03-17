@@ -24,33 +24,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { EditUserDialog } from './edit-user-dialog';
 
 interface UsersTableProps {
   users: UserProfile[];
   currentUserId?: string;
+  onEditUser: (user: UserProfile) => void;
 }
 
-export function UsersTable({ users, currentUserId }: UsersTableProps) {
+export function UsersTable({ users, currentUserId, onEditUser }: UsersTableProps) {
   const firestore = useFirestore();
   const { toast } = useToast();
-  const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-
-  const handleEditClick = (user: UserProfile) => {
-    setEditingUser(user);
-    setIsDialogOpen(true);
-  };
-
-  const handleOpenChange = (open: boolean) => {
-    setIsDialogOpen(open);
-    if (!open) {
-      // Delay cleaning the user to allow animations and cleanup (like body overflow) to finish
-      setTimeout(() => {
-        setEditingUser(null);
-      }, 500);
-    }
-  };
 
   const handleStatusChange = (user: UserProfile, isActive: boolean) => {
     if (!firestore) return;
@@ -139,7 +122,7 @@ export function UsersTable({ users, currentUserId }: UsersTableProps) {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleEditClick(user)}>
+                          <DropdownMenuItem onClick={() => onEditUser(user)}>
                             Editar
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -152,12 +135,6 @@ export function UsersTable({ users, currentUserId }: UsersTableProps) {
           </Table>
         </CardContent>
       </Card>
-      <EditUserDialog
-        isOpen={isDialogOpen}
-        onOpenChange={handleOpenChange}
-        user={editingUser}
-        currentUserId={currentUserId}
-      />
     </>
   );
 }

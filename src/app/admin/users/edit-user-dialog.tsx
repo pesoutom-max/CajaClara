@@ -82,15 +82,14 @@ export function EditUserDialog({ isOpen, onOpenChange, user, currentUserId }: Ed
     try {
       const userRef = doc(firestore, 'users', user.id);
       await updateDoc(userRef, values);
-      
+
       toast({
         title: 'Usuario actualizado',
         description: `Los datos de ${values.name} han sido actualizados.`,
       });
-      
-      // On success, programmatically close the dialog.
-      onOpenChange(false);
 
+      // Close the dialog on success.
+      onOpenChange(false);
     } catch (serverError) {
       const userRef = doc(firestore, 'users', user.id);
       const permissionError = new FirestorePermissionError({
@@ -109,6 +108,7 @@ export function EditUserDialog({ isOpen, onOpenChange, user, currentUserId }: Ed
       setIsLoading(false);
     }
   };
+
 
   return (
     // The `onOpenChange` now correctly handles the boolean state passed by the Dialog component.

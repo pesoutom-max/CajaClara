@@ -104,9 +104,11 @@ export function EditUserDialog({ isOpen, onOpenChange, user, currentUserId }: Ed
         description: 'No tienes permiso para realizar esta acción o ocurrió un error.',
       });
     } finally {
+      // We set loading to false first
       setIsLoading(false);
-      // We only close if success is true. If success is false, the dialog stays open
-      // and isLoading is false, allowing the user to try again or close manually.
+      
+      // If successful, we trigger the close handler. 
+      // Because we now have a delay in the parent, this is much safer.
       if (success) {
         onOpenChange(false);
       }

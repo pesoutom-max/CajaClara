@@ -35,6 +35,22 @@ export function UsersTable({ users, currentUserId }: UsersTableProps) {
   const firestore = useFirestore();
   const { toast } = useToast();
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const handleEditClick = (user: UserProfile) => {
+    setEditingUser(user);
+    setIsDialogOpen(true);
+  };
+
+  const handleOpenChange = (open: boolean) => {
+    setIsDialogOpen(open);
+    if (!open) {
+      // Delay cleaning the user to allow animations and cleanup (like body overflow) to finish
+      setTimeout(() => {
+        setEditingUser(null);
+      }, 500);
+    }
+  };
 
   const handleStatusChange = (user: UserProfile, isActive: boolean) => {
     if (!firestore) return;
@@ -123,7 +139,7 @@ export function UsersTable({ users, currentUserId }: UsersTableProps) {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => setEditingUser(user)}>
+                          <DropdownMenuItem onClick={() => handleEditClick(user)}>
                             Editar
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -137,8 +153,8 @@ export function UsersTable({ users, currentUserId }: UsersTableProps) {
         </CardContent>
       </Card>
       <EditUserDialog
-        isOpen={!!editingUser}
-        onOpenChange={(isOpen) => !isOpen && setEditingUser(null)}
+        isOpen={isDialogOpen}
+        onOpenChange={handleOpenChange}
         user={editingUser}
         currentUserId={currentUserId}
       />

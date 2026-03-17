@@ -14,7 +14,7 @@ import {
   DialogFooter,
   DialogClose,
 } from '@/components/ui/dialog';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -38,12 +38,15 @@ interface EditUserDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   user: UserProfile;
+  currentUserId?: string;
 }
 
-export function EditUserDialog({ isOpen, onOpenChange, user }: EditUserDialogProps) {
+export function EditUserDialog({ isOpen, onOpenChange, user, currentUserId }: EditUserDialogProps) {
   const { toast } = useToast();
   const firestore = useFirestore();
   const [isLoading, setIsLoading] = useState(false);
+
+  const isEditingSelfAsMaster = user.id === currentUserId && user.role === 'master';
 
   const form = useForm<EditUserFormValues>({
     resolver: zodResolver(editUserSchema),
@@ -143,7 +146,7 @@ export function EditUserDialog({ isOpen, onOpenChange, user }: EditUserDialogPro
                         onValueChange={field.onChange}
                         value={field.value}
                         className="flex gap-4 pt-2"
-                        disabled={isLoading}
+                        disabled={isLoading || isEditingSelfAsMaster}
                       >
                         <Label className="flex items-center gap-2 p-3 border rounded-md cursor-pointer flex-1 justify-center has-[:checked]:bg-accent has-[:checked]:border-primary">
                           <RadioGroupItem value="staff" /> Staff
@@ -153,6 +156,7 @@ export function EditUserDialog({ isOpen, onOpenChange, user }: EditUserDialogPro
                         </Label>
                       </RadioGroup>
                     </FormControl>
+                     {isEditingSelfAsMaster && <FormDescription>No puedes cambiar tu propio rol de maestro.</FormDescription>}
                      <FormMessage />
                   </FormItem>
                 )}
@@ -162,6 +166,7 @@ export function EditUserDialog({ isOpen, onOpenChange, user }: EditUserDialogPro
                   <FormLabel>Cuenta Activa</FormLabel>
                   <p className="text-xs text-muted-foreground">
                     Permite al usuario iniciar sesión en la aplicación.
+                    {isEditingSelfAsMaster && <span className="block font-medium text-amber-600 mt-1">No puedes desactivar tu propia cuenta.</span>}
                   </p>
                 </div>
                  <FormField
@@ -173,7 +178,7 @@ export function EditUserDialog({ isOpen, onOpenChange, user }: EditUserDialogPro
                         <Switch
                           checked={field.value}
                           onCheckedChange={field.onChange}
-                          disabled={isLoading}
+                          disabled={isLoading || isEditingSelfAsMaster}
                         />
                       </FormControl>
                     </FormItem>

@@ -38,6 +38,17 @@ export function UsersTable({ users, currentUserId }: UsersTableProps) {
 
   const handleStatusChange = (user: UserProfile, isActive: boolean) => {
     if (!firestore) return;
+
+    // A master user cannot deactivate themselves. This is handled by disabling the switch, but this is a safeguard.
+    if (user.id === currentUserId && user.role === 'master' && !isActive) {
+       toast({
+        variant: "destructive",
+        title: "Acción no permitida",
+        description: "Un usuario maestro no puede desactivar su propia cuenta.",
+      });
+      return;
+    }
+    
     const userRef = doc(firestore, 'users', user.id);
 
     updateDoc(userRef, { isActive: isActive })
@@ -61,6 +72,8 @@ export function UsersTable({ users, currentUserId }: UsersTableProps) {
         });
       });
   };
+
+  const isSelfMaster = (user: UserProfile) => user.id === currentUserId && user.role === 'master';
 
   return (
     <>
@@ -97,14 +110,14 @@ export function UsersTable({ users, currentUserId }: UsersTableProps) {
                       <Switch
                         checked={user.isActive}
                         onCheckedChange={(isChecked) => handleStatusChange(user, isChecked)}
-                        disabled={user.id === currentUserId}
+                        disabled={isSelfMaster(user)}
                         aria-label={`Activar o desactivar usuario ${user.name}`}
                       />
                     </TableCell>
                     <TableCell className="text-right">
                        <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0" disabled={user.id === currentUserId}>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
                             <span className="sr-only">Abrir menú</span>
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
@@ -128,6 +141,7 @@ export function UsersTable({ users, currentUserId }: UsersTableProps) {
           isOpen={!!editingUser}
           onOpenChange={(isOpen) => !isOpen && setEditingUser(null)}
           user={editingUser}
+          currentUserId={currentUserId}
         />
       )}
     </>

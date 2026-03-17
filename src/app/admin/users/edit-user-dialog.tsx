@@ -69,42 +69,49 @@ export function EditUserDialog({ isOpen, onOpenChange, user, currentUserId }: Ed
     }
   }, [user, form]);
 
-  const handleClose = () => {
-    if (isLoading) return;
-    onOpenChange(false);
+  const handleClose = (open: boolean) => {
+    // If the dialog is being closed AND a submission is in progress, prevent it.
+    if (!open && isLoading) return;
+    onOpenChange(open);
   };
 
   const onSubmit = async (values: EditUserFormValues) => {
     if (!firestore || !user) return;
     setIsLoading(true);
 
-    const userRef = doc(firestore, 'users', user.id);
-    updateDoc(userRef, values)
-      .then(() => {
-        toast({
-          title: 'Usuario actualizado',
-          description: `Los datos de ${values.name} han sido actualizados.`,
-        });
-        setIsLoading(false);
-        handleClose();
-      })
-      .catch((serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: userRef.path,
-            operation: 'update',
-            requestResourceData: values
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        toast({
-          variant: 'destructive',
-          title: 'Error al actualizar',
-          description: 'No tienes permiso para realizar esta acción o ocurrió un error.',
-        });
-        setIsLoading(false);
+    try {
+      const userRef = doc(firestore, 'users', user.id);
+      await updateDoc(userRef, values);
+      
+      toast({
+        title: 'Usuario actualizado',
+        description: `Los datos de ${values.name} han sido actualizados.`,
       });
+      
+      // On success, programmatically close the dialog.
+      onOpenChange(false);
+
+    } catch (serverError) {
+      const userRef = doc(firestore, 'users', user.id);
+      const permissionError = new FirestorePermissionError({
+          path: userRef.path,
+          operation: 'update',
+          requestResourceData: values
+      });
+      errorEmitter.emit('permission-error', permissionError);
+      toast({
+        variant: 'destructive',
+        title: 'Error al actualizar',
+        description: 'No tienes permiso para realizar esta acción o ocurrió un error.',
+      });
+    } finally {
+      // This block ensures the loading state is always reset, preventing a frozen UI.
+      setIsLoading(false);
+    }
   };
 
   return (
+    // The `onOpenChange` now correctly handles the boolean state passed by the Dialog component.
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[425px]">
         <Form {...form}>

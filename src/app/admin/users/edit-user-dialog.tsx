@@ -37,7 +37,7 @@ type EditUserFormValues = z.infer<typeof editUserSchema>;
 interface EditUserDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  user: UserProfile;
+  user: UserProfile | null;
   currentUserId?: string;
 }
 
@@ -45,8 +45,13 @@ export function EditUserDialog({ isOpen, onOpenChange, user, currentUserId }: Ed
   const { toast } = useToast();
   const firestore = useFirestore();
   const [isLoading, setIsLoading] = useState(false);
+  const [lastUser, setLastUser] = useState<UserProfile | null>(null);
 
-  const isEditingSelfAsMaster = user.id === currentUserId && user.role === 'master';
+  // Use the current user if available, otherwise fallback to the last user
+  // This keeps the dialog content filled while it's closing.
+  const displayUser = user || lastUser;
+
+  const isEditingSelfAsMaster = displayUser?.id === currentUserId && displayUser?.role === 'master';
 
   const form = useForm<EditUserFormValues>({
     resolver: zodResolver(editUserSchema),
@@ -60,6 +65,7 @@ export function EditUserDialog({ isOpen, onOpenChange, user, currentUserId }: Ed
 
   useEffect(() => {
     if (user) {
+      setLastUser(user);
       form.reset({
         name: user.name,
         role: user.role,
@@ -70,13 +76,13 @@ export function EditUserDialog({ isOpen, onOpenChange, user, currentUserId }: Ed
   }, [user, form]);
 
   const onSubmit = async (values: EditUserFormValues) => {
-    if (!firestore || !user) return;
+    if (!firestore || !displayUser) return;
     
     setIsLoading(true);
     let success = false;
 
     try {
-      const userRef = doc(firestore, 'users', user.id);
+      const userRef = doc(firestore, 'users', displayUser.id);
       await updateDoc(userRef, values);
 
       toast({
@@ -85,7 +91,7 @@ export function EditUserDialog({ isOpen, onOpenChange, user, currentUserId }: Ed
       });
       success = true;
     } catch (serverError) {
-      const userRef = doc(firestore, 'users', user.id);
+      const userRef = doc(firestore, 'users', displayUser.id);
       const permissionError = new FirestorePermissionError({
           path: userRef.path,
           operation: 'update',
@@ -115,24 +121,25 @@ export function EditUserDialog({ isOpen, onOpenChange, user, currentUserId }: Ed
         onPointerDownOutside={(e) => isLoading && e.preventDefault()}
         onEscapeKeyDown={(e) => isLoading && e.preventDefault()}
       >
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            <DialogHeader>
-              <DialogTitle>Editar Usuario</DialogTitle>
-              <DialogDescription>
-                Modifica los datos del perfil de {user.name}.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-6">
-              <FormItem>
-                <FormLabel>Correo electrónico</FormLabel>
-                <Input value={user.email} disabled />
-                <p className="text-xs text-muted-foreground">El correo no se puede cambiar.</p>
-              </FormItem>
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
+        {displayUser && (
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)}>
+              <DialogHeader>
+                <DialogTitle>Editar Usuario</DialogTitle>
+                <DialogDescription>
+                  Modifica los datos del perfil de {displayUser.name}.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-6">
+                <FormItem>
+                  <FormLabel>Correo electrónico</FormLabel>
+                  <Input value={displayUser.email} disabled />
+                  <p className="text-xs text-muted-foreground">El correo no se puede cambiar.</p>
+                </FormItem>
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
                   <FormItem>
                     <FormLabel>Nombre completo</FormLabel>
                     <FormControl>
@@ -228,7 +235,8 @@ export function EditUserDialog({ isOpen, onOpenChange, user, currentUserId }: Ed
             </DialogFooter>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+      )}
+    </DialogContent>
+  </Dialog>
   );
 }

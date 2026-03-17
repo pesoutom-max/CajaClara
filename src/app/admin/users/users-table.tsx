@@ -136,14 +136,12 @@ export function UsersTable({ users, currentUserId }: UsersTableProps) {
           </Table>
         </CardContent>
       </Card>
-      {editingUser && (
-        <EditUserDialog
-          isOpen={!!editingUser}
-          onOpenChange={(isOpen) => !isOpen && setEditingUser(null)}
-          user={editingUser}
-          currentUserId={currentUserId}
-        />
-      )}
+      <EditUserDialog
+        isOpen={!!editingUser}
+        onOpenChange={(isOpen) => !isOpen && setEditingUser(null)}
+        user={editingUser}
+        currentUserId={currentUserId}
+      />
     </>
   );
 }

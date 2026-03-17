@@ -48,6 +48,13 @@ service cloud.firestore {
     function isExistingOwner(userId) {
       return isOwner(userId) && resource != null;
     }
+    
+    /**
+     * Checks if the requesting user has the 'master' role.
+     */
+    function isMaster() {
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'master';
+    }
 
     /**
      * @description Controls access to a user's root document.
@@ -57,12 +64,12 @@ service cloud.firestore {
      * @principle Establishes a user's private data root and prevents enumeration of other users.
      */
     match /users/{userId} {
-      allow get: if isOwner(userId);
-      allow list: if false; // CRITICAL: Prevents listing all users in the app.
+      allow get: if isOwner(userId) || isMaster();
+      allow list: if isMaster();
       allow create: if isOwner(userId);
       // A user can update their own document, but they are not allowed to change
-      // their own role. This prevents privilege escalation.
-      allow update: if isOwner(userId) && request.resource.data.role == resource.data.role;
+      // their own role. This prevents privilege escalation. A master can update any user.
+      allow update: if (isOwner(userId) && request.resource.data.role == resource.data.role) || isMaster();
       allow delete: if isExistingOwner(userId);
     }
 

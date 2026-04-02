@@ -23,7 +23,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Landmark, Wallet, ArrowRight, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Landmark, Wallet, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useFirestore } from "@/firebase";
 import { collection, serverTimestamp } from "firebase/firestore";
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
@@ -122,8 +122,8 @@ export function DailyCloseDialog({
     };
 
     addDocumentNonBlocking(dailyClosesCollection, payload)
-      .then((docRef) => {
-        // If docRef is undefined but no error was thrown, addDocumentNonBlocking's catch might have swallowed a real error
+      .then((_docRef) => {
+        // If _docRef is undefined but no error was thrown, addDocumentNonBlocking's catch might have swallowed a real error
         // But usually successful addDoc returns DocumentReference
         toast({
           title: "Cierre de caja guardado",

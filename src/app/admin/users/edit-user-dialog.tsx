@@ -67,6 +67,7 @@ export function EditUserDialog({ isOpen, onOpenChange, user, currentUserId }: Ed
       const timer = setTimeout(cleanup, 300);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [isOpen]);
 
   // Use the current user if available, otherwise fallback to the last user

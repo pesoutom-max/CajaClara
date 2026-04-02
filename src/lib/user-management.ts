@@ -17,6 +17,26 @@ interface CreateUserParams {
 }
 
 /**
+ * Validates password strength requirements.
+ * @param password - The password to validate.
+ * @throws Will throw an error if password doesn't meet requirements.
+ */
+function validatePassword(password: string): void {
+  if (password.length < 8) {
+    throw new Error('La contraseña debe tener al menos 8 caracteres.');
+  }
+  if (!/[A-Z]/.test(password)) {
+    throw new Error('La contraseña debe contener al menos una letra mayúscula.');
+  }
+  if (!/[0-9]/.test(password)) {
+    throw new Error('La contraseña debe contener al menos un número.');
+  }
+  if (!/[!@#$%^&*]/.test(password)) {
+    throw new Error('La contraseña debe contener al menos un carácter especial (!@#$%^&*).');
+  }
+}
+
+/**
  * Creates a new user account in Firebase Authentication and a corresponding user profile in Firestore.
  * This function uses a secondary Firebase app instance to perform the user creation,
  * ensuring that the currently logged-in administrator's session is not affected.
@@ -26,6 +46,9 @@ interface CreateUserParams {
  */
 export async function createUserAccount(params: CreateUserParams): Promise<void> {
   const { email, password, name, role, createdBy } = params;
+
+  // Validate password strength
+  validatePassword(password);
 
   // 1. Initialize a secondary Firebase app instance to avoid session conflicts.
   // This allows creating a new user without signing out the current admin.

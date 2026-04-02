@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { doc, updateDoc } from 'firebase/firestore';
 import { useFirestore, errorEmitter, FirestorePermissionError } from '@/firebase';
 import type { UserProfile } from '@/lib/user-profiles';
@@ -57,7 +56,7 @@ export function UsersTable({ users, currentUserId, onEditUser }: UsersTableProps
           description: `El estado de ${user.name} ha sido actualizado.`,
         });
       })
-      .catch((serverError) => {
+      .catch((_serverError) => {
         const permissionError = new FirestorePermissionError({
           path: userRef.path,
           operation: 'update',

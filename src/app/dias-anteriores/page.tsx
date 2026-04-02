@@ -9,12 +9,6 @@ import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebas
 import { collection, query, Timestamp } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 
-interface DailySummary {
-  date: string;
-  sales: number;
-  expenses: number;
-}
-
 export default function PreviousDaysPage() {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();

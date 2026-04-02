@@ -12,8 +12,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import Link from 'next/link';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
+import { RateLimiter } from 'limiter';
 
 const loginSchema = z.object({
   email: z.string().email('Ingresa un correo válido.'),
@@ -27,6 +27,12 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  // Rate limiter: 5 attempts per hour
+  const _loginLimiter = new RateLimiter({
+    tokensPerInterval: 5,
+    interval: 'hour',
+  });
+
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -38,13 +44,33 @@ export default function LoginPage() {
   const onSubmit = async (values: z.infer<typeof loginSchema>) => {
     setIsLoading(true);
     try {
+      // Check rate limit
+      const remaining = await _loginLimiter.removeTokens(1);
+      if (remaining < 0) {
+        toast({
+          variant: 'destructive',
+          title: 'Demasiados intentos',
+          description: 'Has excedido el límite de intentos. Intenta más tarde.',
+        });
+        setIsLoading(false);
+        return;
+      }
+
       await signInWithEmailAndPassword(auth, values.email, values.password);
       router.push('/');
     } catch (error: any) {
+      let message = 'Las credenciales no son correctas.';
+      if (error.code === 'auth/user-not-found') {
+        message = 'Usuario no encontrado.';
+      } else if (error.code === 'auth/wrong-password') {
+        message = 'Contraseña incorrecta.';
+      } else if (error.code === 'auth/too-many-requests') {
+        message = 'Demasiados intentos. Intenta más tarde.';
+      }
       toast({
         variant: 'destructive',
         title: 'Error al iniciar sesión',
-        description: 'Las credenciales no son correctas. Por favor, intenta de nuevo.',
+        description: message,
       });
       setIsLoading(false);
     }

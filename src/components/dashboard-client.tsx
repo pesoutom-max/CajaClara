@@ -20,6 +20,7 @@ import Link from 'next/link';
 import type { UserProfile } from '@/lib/user-profiles';
 import { Header } from '@/components/header';
 import { DailyCloseDialog } from '@/components/daily-close-dialog';
+import { useUserProfile } from '@/hooks/use-user-profile';
 
 const saleSchema = z.object({
   amount: z.coerce.number().positive("El monto debe ser un número positivo."),
@@ -40,6 +41,9 @@ export function DashboardClient() {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
+
+  // Check user profile and redirect if must change password
+  useUserProfile();
 
   const profileRef = useMemoFirebase(() => {
     if (!user) return null;
